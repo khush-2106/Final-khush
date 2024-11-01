@@ -294,134 +294,127 @@ export default function Dashboard() {
     setPhotosDelivered({})
   }
 
-  const generateChallanContent = (type: string, orderIds: string[]) => {
-    const selectedOrders = orders.filter(order => orderIds.includes(order.id))
-    const currentDate = format(new Date(), "MMMM d, yyyy")
-    let content = `
-      <html>
-        <head>
-          <title>Challan - ${type}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-            .page { width: 210mm; height: 297mm; padding: 10mm; box-sizing: border-box; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 10mm; }
-            th, td { border: 1px solid black; padding: 2mm; text-align: left; font-size: 10pt; }
-            h1 { text-align: center; font-size: 14pt; margin-bottom: 5mm; }
-            .header { text-align: center; margin-bottom: 5mm; }
-            .logo { width: 100px; height: auto; } /* Adjust size as needed */
-            .company-info { font-size: 12pt; }
-            .signature-line { border-bottom: 1px dotted black; height: 15mm; }
-            @media print {
-              .page { page-break-after: always; }
-            }
-          </style>
-        </head>
-        <body>
-    `
+  
+const generateChallanContent = (type: string, orderIds: string[]) => {
+  const selectedOrders = orders.filter(order => orderIds.includes(order.id))
+  const currentDate = format(new Date(), "MMMM d, yyyy")
+  let content = `
+    <html>
+      <head>
+        <title>Challan - ${type}</title>
+        <style>
+          @page { size: A4; margin: 0; }
+          body { font-family: Arial, sans-serif; margin: 0; padding: 10mm; box-sizing: border-box; }
+          .page { width: 190mm; min-height: 277mm; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 5mm; }
+          th, td { border: 1px solid black; padding: 2mm; text-align: left; font-size: 9pt; }
+          h1 { text-align: center; font-size: 14pt; margin-bottom: 5mm; }
+          .header { text-align: center; margin-bottom: 5mm; }
+          .company-name { font-size: 16pt; font-weight: bold; }
+          .company-info { font-size: 10pt; }
+          .signature-line { border-bottom: 1px dotted black; height: 10mm; }
+        </style>
+      </head>
+      <body>
+        <div class="page">
+  `
 
-    if (type === "master") {
-      content += generateMasterChallan(selectedOrders[0], currentDate)
-    } else {
-      selectedOrders.forEach(order => {
-        content += generateRegularChallan(type, order, currentDate)
-      })
-    }
-
-    content += `
-        </body>
-      </html>
-    `
-
-    return content
+  if (type === "master") {
+    content += generateMasterChallan(selectedOrders[0], currentDate)
+  } else {
+    content += generateRegularChallan(type, selectedOrders[0], currentDate)
   }
 
-  const generateRegularChallan = (type: string, order: Order, currentDate: string) => {
-    return `
-      <div class="page">
-        <div class="header">
-          <img src="/logo.png" alt="Company Logo" class="logo">
-          <div class="company-info">
-            <font size="10"> Patel offset </font> <br><br>
-            Mo. - 7043051052
-          </div>
-          <div class="date">${currentDate}</div>
+  content += `
         </div>
-        <h1>Challan - ${type}</h1>
-        <table>
-          <tr>
-            <th>Order ID</th>
-            <th>Client</th>
-            <th>Manufacturer</th>
-            <th>Product</th>
-            <th>Quantity</th>
-            ${type === "photos" ? "<th>Prints</th>" : ""}
-          </tr>
-          <tr>
-            <td>${order.id}</td>
-            <td>${order.client}</td>
-            <td>${order.manufacturer}</td>
-            <td>${order.product}</td>
-            <td>${order.quantity}</td>
-            ${type === "photos" ? `<td>${photosDelivered[order.id] || ''}</td>` : ""}
-          </tr>
-        </table>
-        <div style="display: flex; justify-content: space-between; margin-top: 20mm;">
-          <div>
-            <p>Received By: _________________</p>
-            <p>Date: _______________________</p>
-          </div>
-          <div>
-            <p>Authorized Signature: _________________</p>
-          </div>
-        </div>
-      </div>
-    `
-  }
+      </body>
+    </html>
+  `
 
-  const generateMasterChallan = (order:  Order, currentDate: string) => {
-    return `
-      <div class="page">
-        <div class="header">
-          <img src="/logo.png" alt="Company Logo" class="logo">
-          <div class="company-info">
-          <font size="10"> Patel offset </font> <br><br>
-            Mo. - 7043051052
-          </div>
-          <div class="date">${currentDate}</div>
-        </div>
-        <h1>Master Challan</h1>
-        <table>
-          <tr>
-            <th>Order ID</th>
-            <th>Client</th>
-            <th>Manufacturer</th>
-            <th>Product</th>
-            <th>Quantity</th>
-            <th>Prints</th>
-          </tr>
-          <tr>
-            <td>${order.id}</td>
-            <td>${order.client}</td>
-            <td>${order.manufacturer}</td>
-            <td>${order.product}</td>
-            <td>${order.quantity}</td>
-            <td>${photosDelivered[order.id] || ''}</td>
-          </tr>
-        </table>
-        <h2>Order Process</h2>
-        <table>
-          ${orderStatuses.map(status => `
-            <tr>
-              <td style="width: 50%;">${status}</td>
-              <td class="signature-line"></td>
-            </tr>
-          `).join('')}
-        </table>
-        <div style="margin-top: 20mm;">
-          <p>Authorized Signature: _________________________</p>
-          <p>Date: _______________________</p>
-        </div>
+  return content
+}
+
+const generateRegularChallan = (type: string, order: Order, currentDate: string) => {
+  return `
+    <div class="header">
+      <div class="company-name"><font size="7">Patel Offset</font></div><br>
+      <div class="company-info">
+        Mo. - 7043051052
       </div>
+      <div class="date">${currentDate}</div>
+    </div>
+    <h1>Challan - ${type}</h1>
+    <table>
+      <tr>
+        <th>Order ID</th>
+        <th>Client</th>
+        <th>Manufacturer</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        ${type === "photos" ? "<th>Prints</th>" : ""}
+      </tr>
+      <tr>
+        <td>${order.id}</td>
+        <td>${order.client}</td>
+        <td>${order.manufacturer}</td>
+        <td>${order.product}</td>
+        <td>${order.quantity}</td>
+        ${type === "photos" ? `<td>${photosDelivered[order.id] || ''}</td>` : ""}
+      </tr>
+    </table>
+    <div style="display: flex; justify-content: space-between; margin-top: 20mm;">
+      <div>
+        <p>Received By: _________________</p>
+        <p>Date: _______________________</p>
+      </div>
+      <div>
+        <p>Authorized Signature: _________________</p>
+      </div>
+    </div>
+  `
+}
+
+const generateMasterChallan = (order: Order, currentDate: string) => {
+  return `
+    <div class="header">
+      <div class="company-name">Patel Offset</div>
+      <div class="company-info">
+        Mo. - 7043051052
+      </div>
+      <div class="date">${currentDate}</div>
+    </div>
+    <h1>Master Challan</h1>
+    <table>
+      <tr>
+        <th>Order ID</th>
+        <th>Client</th>
+        <th>Manufacturer</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Prints</th>
+      </tr>
+      <tr>
+        <td>${order.id}</td>
+        <td>${order.client}</td>
+        <td>${order.manufacturer}</td>
+        <td>${order.product}</td>
+        <td>${order.quantity}</td>
+        <td>${photosDelivered[order.id] || ''}</td>
+      </tr>
+    </table>
+    <h2>Order Process</h2>
+    <table>
+      ${orderStatuses.map(status => `
+        <tr>
+          <td style="width: 50%;">${status}</td>
+          <td class="signature-line"></td>
+        </tr>
+      `).join('')}
+    </table>
+    <div style="margin-top: 10mm;">
+      <p>Authorized Signature: _________________________</p>
+      <p>Date: _______________________</p>
+    </div>
     `
   }
 
