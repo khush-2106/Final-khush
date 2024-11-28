@@ -90,6 +90,8 @@ export default function Dashboard() {
   const [challanType, setChallanType] = useState("")
   const [photosDelivered, setPhotosDelivered] = useState<Record<string, number>>({})
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null)
   const [clients, setClients] = useState<string[]>([])
   const [manufacturers, setManufacturers] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -246,14 +248,24 @@ export default function Dashboard() {
   }
 
   const handleDeleteOrder = async (orderId: string) => {
+    setOrderToDelete(orderId);
+    setIsDeleteDialogOpen(true);
+  }
+
+  const confirmDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    
     try {
-      await deleteDoc(doc(db, 'orders', orderId))
-      const updatedOrders = orders.filter(order => order.id !== orderId)
+      await deleteDoc(doc(db, 'orders', orderToDelete))
+      const updatedOrders = orders.filter(order => order.id !== orderToDelete)
       setOrders(updatedOrders)
       console.log("Order deleted successfully")
     } catch (error) {
       console.error("Error deleting order: ", error)
     }
+    
+    setIsDeleteDialogOpen(false)
+    setOrderToDelete(null)
   }
 
   const handleEditOrder = async (orderId: string, updatedOrder: Partial<Order>) => {
@@ -780,6 +792,25 @@ const generateMasterChallan = (order: Order, currentDate: string) => {
               ) : (
                 newOrder.id ? "Save Changes" : "Save Order"
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this order? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteOrder}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
